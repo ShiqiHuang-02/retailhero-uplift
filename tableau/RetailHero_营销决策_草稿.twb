@@ -1,0 +1,650 @@
+<?xml version='1.0' encoding='utf-8'?>
+<workbook version="10.5" source-platform="mac" original-version="10.5" xmlns:user="http://www.tableausoftware.com/xml/user">
+  <datasources>
+    <datasource hasconnection="false" inline="true" name="Parameters" version="10.5">
+      <column name="[Margin]" caption="假设单客贡献毛利" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="30">
+        <calculation class="tableau" formula="30" />
+        <range min="0" max="1000" granularity=".1" />
+      </column>
+      <column name="[ContactCost]" caption="假设单次触达成本" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="0.5">
+        <calculation class="tableau" formula="0.5" />
+        <range min="0" max="1000" granularity=".1" />
+      </column>
+    </datasource>
+    <datasource caption="overall_rates" name="overall_rates" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="overall_rates.csv" server="" password="">
+        <relation name="overall_rates.csv" table="[overall_rates#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="treatment_flg" datatype="integer" ordinal="0" />
+            <column name="customers" datatype="integer" ordinal="1" />
+            <column name="buyers" datatype="integer" ordinal="2" />
+            <column name="purchase_rate" datatype="real" ordinal="3" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[treatment_flg]" datatype="integer" role="dimension" type="nominal" />
+      <column name="[customers]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[buyers]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[purchase_rate]" datatype="real" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="test_policy" name="test_policy" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="test_policy.csv" server="" password="">
+        <relation name="test_policy.csv" table="[test_policy#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="split" datatype="string" ordinal="0" />
+            <column name="strategy" datatype="string" ordinal="1" />
+            <column name="candidate_count" datatype="integer" ordinal="2" />
+            <column name="contact_count" datatype="real" ordinal="3" />
+            <column name="contacts_per_1000" datatype="real" ordinal="4" />
+            <column name="gain_per_1000" datatype="real" ordinal="5" />
+            <column name="se_per_1000" datatype="real" ordinal="6" />
+            <column name="ci_low" datatype="real" ordinal="7" />
+            <column name="ci_high" datatype="real" ordinal="8" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[split]" datatype="string" role="dimension" type="nominal" />
+      <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+      <column name="[candidate_count]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[contact_count]" datatype="real" role="measure" type="quantitative" />
+      <column name="[contacts_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[gain_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[se_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_low]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_high]" datatype="real" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="test_comparisons" name="test_comparisons" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="test_comparisons.csv" server="" password="">
+        <relation name="test_comparisons.csv" table="[test_comparisons#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="split" datatype="string" ordinal="0" />
+            <column name="comparison" datatype="string" ordinal="1" />
+            <column name="estimate_per_1000" datatype="real" ordinal="2" />
+            <column name="normal_ci_low" datatype="real" ordinal="3" />
+            <column name="normal_ci_high" datatype="real" ordinal="4" />
+            <column name="bootstrap_ci_low" datatype="real" ordinal="5" />
+            <column name="bootstrap_ci_high" datatype="real" ordinal="6" />
+            <column name="bootstrap_reps" datatype="integer" ordinal="7" />
+            <column name="bootstrap_seed" datatype="integer" ordinal="8" />
+            <column name="analysis_role" datatype="string" ordinal="9" />
+            <column name="ci_width" datatype="real" ordinal="10" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[split]" datatype="string" role="dimension" type="nominal" />
+      <column name="[comparison]" datatype="string" role="dimension" type="nominal" />
+      <column name="[estimate_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[normal_ci_low]" datatype="real" role="measure" type="quantitative" />
+      <column name="[normal_ci_high]" datatype="real" role="measure" type="quantitative" />
+      <column name="[bootstrap_ci_low]" datatype="real" role="measure" type="quantitative" />
+      <column name="[bootstrap_ci_high]" datatype="real" role="measure" type="quantitative" />
+      <column name="[bootstrap_reps]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[bootstrap_seed]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[analysis_role]" datatype="string" role="dimension" type="nominal" />
+      <column name="[ci_width]" datatype="real" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="contact_curve" name="contact_curve" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="contact_curve.csv" server="" password="">
+        <relation name="contact_curve.csv" table="[contact_curve#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="split" datatype="string" ordinal="0" />
+            <column name="strategy" datatype="string" ordinal="1" />
+            <column name="contact_share" datatype="real" ordinal="2" />
+            <column name="contacts_per_1000" datatype="real" ordinal="3" />
+            <column name="gain_per_1000" datatype="real" ordinal="4" />
+            <column name="ci_low" datatype="real" ordinal="5" />
+            <column name="ci_high" datatype="real" ordinal="6" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[split]" datatype="string" role="dimension" type="nominal" />
+      <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+      <column name="[contact_share]" datatype="real" role="dimension" type="quantitative" />
+      <column name="[contacts_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[gain_per_1000]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_low]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_high]" datatype="real" role="measure" type="quantitative" />
+      <column name="[net_value]" caption="假设净收益" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[gain_per_1000] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+      </column>
+      <column name="[net_low]" caption="假设净收益下限" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[ci_low] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+      </column>
+      <column name="[net_high]" caption="假设净收益上限" datatype="real" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[ci_high] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+      </column>
+    </datasource>
+    <datasource caption="uplift_calibration" name="uplift_calibration" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="uplift_calibration.csv" server="" password="">
+        <relation name="uplift_calibration.csv" table="[uplift_calibration#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="uplift_group" datatype="string" ordinal="0" />
+            <column name="customers" datatype="integer" ordinal="1" />
+            <column name="predicted_uplift_pp" datatype="real" ordinal="2" />
+            <column name="estimated_uplift_pp" datatype="real" ordinal="3" />
+            <column name="ci_low_pp" datatype="real" ordinal="4" />
+            <column name="ci_high_pp" datatype="real" ordinal="5" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[uplift_group]" datatype="string" role="dimension" type="nominal" />
+      <column name="[customers]" datatype="integer" role="measure" type="quantitative" />
+      <column name="[predicted_uplift_pp]" datatype="real" role="measure" type="quantitative" />
+      <column name="[estimated_uplift_pp]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_low_pp]" datatype="real" role="measure" type="quantitative" />
+      <column name="[ci_high_pp]" datatype="real" role="measure" type="quantitative" />
+    </datasource>
+    <datasource caption="validation_profiles" name="validation_profiles" inline="true" version="10.5">
+      <connection class="textscan" directory="data" filename="validation_profiles.csv" server="" password="">
+        <relation name="validation_profiles.csv" table="[validation_profiles#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator="," text-qualifier="&quot;">
+            <column name="split" datatype="string" ordinal="0" />
+            <column name="strategy" datatype="string" ordinal="1" />
+            <column name="expected_contacts" datatype="real" ordinal="2" />
+            <column name="mean_recency_days" datatype="real" ordinal="3" />
+            <column name="mean_history_transactions" datatype="real" ordinal="4" />
+            <column name="mean_history_spend" datatype="real" ordinal="5" />
+            <column name="mean_response_score" datatype="real" ordinal="6" />
+            <column name="mean_predicted_uplift" datatype="real" ordinal="7" />
+          </columns>
+        </relation>
+      </connection>
+      <column name="[split]" datatype="string" role="dimension" type="nominal" />
+      <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+      <column name="[expected_contacts]" datatype="real" role="measure" type="quantitative" />
+      <column name="[mean_recency_days]" datatype="real" role="measure" type="quantitative" />
+      <column name="[mean_history_transactions]" datatype="real" role="measure" type="quantitative" />
+      <column name="[mean_history_spend]" datatype="real" role="measure" type="quantitative" />
+      <column name="[mean_response_score]" datatype="real" role="measure" type="quantitative" />
+      <column name="[mean_predicted_uplift]" datatype="real" role="measure" type="quantitative" />
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name="01 两组购买率｜全样本描述">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">01 两组购买率｜全样本描述</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="overall_rates" caption="overall_rates" />
+          </datasources>
+          <datasource-dependencies datasource="overall_rates">
+            <column name="[treatment_flg]" datatype="integer" role="dimension" type="nominal" />
+            <column-instance column="[treatment_flg]" derivation="None" name="[none:treatment_flg:nk]" pivot="key" type="nominal" />
+            <column name="[purchase_rate]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[purchase_rate]" derivation="Avg" name="[avg:purchase_rate:qk]" pivot="key" type="quantitative" />
+            <column name="[customers]" datatype="integer" role="measure" type="quantitative" />
+            <column-instance column="[customers]" derivation="Avg" name="[avg:customers:qk]" pivot="key" type="quantitative" />
+            <column name="[buyers]" datatype="integer" role="measure" type="quantitative" />
+            <column-instance column="[buyers]" derivation="Avg" name="[avg:buyers:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Bar" />
+            <encodings>
+              <lod column="[overall_rates].[avg:customers:qk]" />
+              <lod column="[overall_rates].[avg:buyers:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>treatment_flg: &lt;[overall_rates].[none:treatment_flg:nk]&gt;
+purchase_rate: &lt;[overall_rates].[avg:purchase_rate:qk]&gt;
+customers: &lt;[overall_rates].[avg:customers:qk]&gt;
+buyers: &lt;[overall_rates].[avg:buyers:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[overall_rates].[none:treatment_flg:nk]</rows>
+        <cols>[overall_rates].[avg:purchase_rate:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="02 策略收益｜既有测试集·20%触达">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">02 策略收益｜既有测试集·20%触达</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="test_policy" caption="test_policy" />
+          </datasources>
+          <datasource-dependencies datasource="test_policy">
+            <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[strategy]" derivation="None" name="[none:strategy:nk]" pivot="key" type="nominal" />
+            <column name="[gain_per_1000]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[gain_per_1000]" derivation="Avg" name="[avg:gain_per_1000:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_low]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_low]" derivation="Avg" name="[avg:ci_low:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_high]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_high]" derivation="Avg" name="[avg:ci_high:qk]" pivot="key" type="quantitative" />
+            <column name="[contacts_per_1000]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[contacts_per_1000]" derivation="Avg" name="[avg:contacts_per_1000:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Bar" />
+            <encodings>
+              <lod column="[test_policy].[avg:ci_low:qk]" />
+              <lod column="[test_policy].[avg:ci_high:qk]" />
+              <lod column="[test_policy].[avg:contacts_per_1000:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>strategy: &lt;[test_policy].[none:strategy:nk]&gt;
+gain_per_1000: &lt;[test_policy].[avg:gain_per_1000:qk]&gt;
+ci_low: &lt;[test_policy].[avg:ci_low:qk]&gt;
+ci_high: &lt;[test_policy].[avg:ci_high:qk]&gt;
+contacts_per_1000: &lt;[test_policy].[avg:contacts_per_1000:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[test_policy].[none:strategy:nk]</rows>
+        <cols>[test_policy].[avg:gain_per_1000:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="03 策略差异95%区间｜既有测试集">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">03 策略差异95%区间｜既有测试集</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="test_comparisons" caption="test_comparisons" />
+          </datasources>
+          <datasource-dependencies datasource="test_comparisons">
+            <column name="[comparison]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[comparison]" derivation="None" name="[none:comparison:nk]" pivot="key" type="nominal" />
+            <column name="[normal_ci_low]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[normal_ci_low]" derivation="Avg" name="[avg:normal_ci_low:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_width]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_width]" derivation="Avg" name="[avg:ci_width:qk]" pivot="key" type="quantitative" />
+            <column name="[estimate_per_1000]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[estimate_per_1000]" derivation="Avg" name="[avg:estimate_per_1000:qk]" pivot="key" type="quantitative" />
+            <column name="[normal_ci_high]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[normal_ci_high]" derivation="Avg" name="[avg:normal_ci_high:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="GanttBar" />
+            <encodings>
+              <size column="[test_comparisons].[avg:ci_width:qk]" />
+              <lod column="[test_comparisons].[avg:estimate_per_1000:qk]" />
+              <lod column="[test_comparisons].[avg:normal_ci_high:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>comparison: &lt;[test_comparisons].[none:comparison:nk]&gt;
+normal_ci_low: &lt;[test_comparisons].[avg:normal_ci_low:qk]&gt;
+ci_width: &lt;[test_comparisons].[avg:ci_width:qk]&gt;
+estimate_per_1000: &lt;[test_comparisons].[avg:estimate_per_1000:qk]&gt;
+normal_ci_high: &lt;[test_comparisons].[avg:normal_ci_high:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[test_comparisons].[none:comparison:nk]</rows>
+        <cols>[test_comparisons].[avg:normal_ci_low:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="04 触达比例曲线｜验证集探索">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">04 触达比例曲线｜验证集探索</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="contact_curve" caption="contact_curve" />
+          </datasources>
+          <datasource-dependencies datasource="contact_curve">
+            <column name="[gain_per_1000]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[gain_per_1000]" derivation="Avg" name="[avg:gain_per_1000:qk]" pivot="key" type="quantitative" />
+            <column name="[contact_share]" datatype="real" role="dimension" type="quantitative" />
+            <column-instance column="[contact_share]" derivation="None" name="[none:contact_share:qk]" pivot="key" type="quantitative" />
+            <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[strategy]" derivation="None" name="[none:strategy:nk]" pivot="key" type="nominal" />
+            <column name="[ci_low]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_low]" derivation="Avg" name="[avg:ci_low:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_high]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_high]" derivation="Avg" name="[avg:ci_high:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Line" />
+            <encodings>
+              <color column="[contact_curve].[none:strategy:nk]" />
+              <lod column="[contact_curve].[avg:ci_low:qk]" />
+              <lod column="[contact_curve].[avg:ci_high:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>gain_per_1000: &lt;[contact_curve].[avg:gain_per_1000:qk]&gt;
+contact_share: &lt;[contact_curve].[none:contact_share:qk]&gt;
+strategy: &lt;[contact_curve].[none:strategy:nk]&gt;
+ci_low: &lt;[contact_curve].[avg:ci_low:qk]&gt;
+ci_high: &lt;[contact_curve].[avg:ci_high:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[contact_curve].[avg:gain_per_1000:qk]</rows>
+        <cols>[contact_curve].[none:contact_share:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="05 分组DR效果｜验证集">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">05 分组DR效果｜验证集</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="uplift_calibration" caption="uplift_calibration" />
+          </datasources>
+          <datasource-dependencies datasource="uplift_calibration">
+            <column name="[uplift_group]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[uplift_group]" derivation="None" name="[none:uplift_group:nk]" pivot="key" type="nominal" />
+            <column name="[estimated_uplift_pp]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[estimated_uplift_pp]" derivation="Avg" name="[avg:estimated_uplift_pp:qk]" pivot="key" type="quantitative" />
+            <column name="[predicted_uplift_pp]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[predicted_uplift_pp]" derivation="Avg" name="[avg:predicted_uplift_pp:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_low_pp]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_low_pp]" derivation="Avg" name="[avg:ci_low_pp:qk]" pivot="key" type="quantitative" />
+            <column name="[ci_high_pp]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[ci_high_pp]" derivation="Avg" name="[avg:ci_high_pp:qk]" pivot="key" type="quantitative" />
+            <column name="[customers]" datatype="integer" role="measure" type="quantitative" />
+            <column-instance column="[customers]" derivation="Avg" name="[avg:customers:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Bar" />
+            <encodings>
+              <lod column="[uplift_calibration].[avg:predicted_uplift_pp:qk]" />
+              <lod column="[uplift_calibration].[avg:ci_low_pp:qk]" />
+              <lod column="[uplift_calibration].[avg:ci_high_pp:qk]" />
+              <lod column="[uplift_calibration].[avg:customers:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>uplift_group: &lt;[uplift_calibration].[none:uplift_group:nk]&gt;
+estimated_uplift_pp: &lt;[uplift_calibration].[avg:estimated_uplift_pp:qk]&gt;
+predicted_uplift_pp: &lt;[uplift_calibration].[avg:predicted_uplift_pp:qk]&gt;
+ci_low_pp: &lt;[uplift_calibration].[avg:ci_low_pp:qk]&gt;
+ci_high_pp: &lt;[uplift_calibration].[avg:ci_high_pp:qk]&gt;
+customers: &lt;[uplift_calibration].[avg:customers:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[uplift_calibration].[none:uplift_group:nk]</rows>
+        <cols>[uplift_calibration].[avg:estimated_uplift_pp:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="06 选中客户消费画像｜验证集">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">06 选中客户消费画像｜验证集</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="validation_profiles" caption="validation_profiles" />
+          </datasources>
+          <datasource-dependencies datasource="validation_profiles">
+            <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[strategy]" derivation="None" name="[none:strategy:nk]" pivot="key" type="nominal" />
+            <column name="[mean_history_spend]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[mean_history_spend]" derivation="Avg" name="[avg:mean_history_spend:qk]" pivot="key" type="quantitative" />
+            <column name="[mean_recency_days]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[mean_recency_days]" derivation="Avg" name="[avg:mean_recency_days:qk]" pivot="key" type="quantitative" />
+            <column name="[mean_history_transactions]" datatype="real" role="measure" type="quantitative" />
+            <column-instance column="[mean_history_transactions]" derivation="Avg" name="[avg:mean_history_transactions:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Bar" />
+            <encodings>
+              <lod column="[validation_profiles].[avg:mean_recency_days:qk]" />
+              <lod column="[validation_profiles].[avg:mean_history_transactions:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>strategy: &lt;[validation_profiles].[none:strategy:nk]&gt;
+mean_history_spend: &lt;[validation_profiles].[avg:mean_history_spend:qk]&gt;
+mean_recency_days: &lt;[validation_profiles].[avg:mean_recency_days:qk]&gt;
+mean_history_transactions: &lt;[validation_profiles].[avg:mean_history_transactions:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[validation_profiles].[none:strategy:nk]</rows>
+        <cols>[validation_profiles].[avg:mean_history_spend:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="07 净收益情景｜假设金额·验证集">
+      <layout-options>
+        <title>
+          <formatted-text>
+            <run bold="true">07 净收益情景｜假设金额·验证集</run>
+          </formatted-text>
+        </title>
+      </layout-options>
+      <table>
+        <view>
+          <datasources>
+            <datasource name="contact_curve" caption="contact_curve" />
+            <datasource name="Parameters" />
+          </datasources>
+          <datasource-dependencies datasource="contact_curve">
+            <column name="[net_value]" caption="假设净收益" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[gain_per_1000] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+            </column>
+            <column-instance column="[net_value]" derivation="Avg" name="[avg:net_value:qk]" pivot="key" type="quantitative" />
+            <column name="[contact_share]" datatype="real" role="dimension" type="quantitative" />
+            <column-instance column="[contact_share]" derivation="None" name="[none:contact_share:qk]" pivot="key" type="quantitative" />
+            <column name="[strategy]" datatype="string" role="dimension" type="nominal" />
+            <column-instance column="[strategy]" derivation="None" name="[none:strategy:nk]" pivot="key" type="nominal" />
+            <column name="[net_low]" caption="假设净收益下限" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[ci_low] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+            </column>
+            <column-instance column="[net_low]" derivation="Avg" name="[avg:net_low:qk]" pivot="key" type="quantitative" />
+            <column name="[net_high]" caption="假设净收益上限" datatype="real" role="measure" type="quantitative">
+              <calculation class="tableau" formula="[ci_high] * [Parameters].[Margin] - [contacts_per_1000] * [Parameters].[ContactCost]" />
+            </column>
+            <column-instance column="[net_high]" derivation="Avg" name="[avg:net_high:qk]" pivot="key" type="quantitative" />
+          </datasource-dependencies>
+          <datasource-dependencies datasource="Parameters">
+            <column name="[Margin]" caption="假设单客贡献毛利" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="30">
+              <calculation class="tableau" formula="30" />
+              <range min="0" max="1000" granularity=".1" />
+            </column>
+            <column name="[ContactCost]" caption="假设单次触达成本" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="0.5">
+              <calculation class="tableau" formula="0.5" />
+              <range min="0" max="1000" granularity=".1" />
+            </column>
+          </datasource-dependencies>
+          <aggregation value="true" />
+        </view>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view breakdown="auto" />
+            <mark class="Line" />
+            <encodings>
+              <color column="[contact_curve].[none:strategy:nk]" />
+              <lod column="[contact_curve].[avg:net_low:qk]" />
+              <lod column="[contact_curve].[avg:net_high:qk]" />
+            </encodings>
+            <customized-tooltip show-command-buttons="false">
+              <formatted-text>
+                <run>net_value: &lt;[contact_curve].[avg:net_value:qk]&gt;
+contact_share: &lt;[contact_curve].[none:contact_share:qk]&gt;
+strategy: &lt;[contact_curve].[none:strategy:nk]&gt;
+net_low: &lt;[contact_curve].[avg:net_low:qk]&gt;
+net_high: &lt;[contact_curve].[avg:net_high:qk]&gt;</run>
+              </formatted-text>
+            </customized-tooltip>
+          </pane>
+        </panes>
+        <rows>[contact_curve].[avg:net_value:qk]</rows>
+        <cols>[contact_curve].[none:contact_share:qk]</cols>
+      </table>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name="01 营销效果概览">
+      <size maxheight="900" maxwidth="1200" minheight="900" minwidth="1200" sizing-mode="fixed" />
+      <zones>
+        <zone id="1" type-v2="text" x="2000" y="1000" w="96000" h="9000">
+          <formatted-text>
+            <run bold="true" fontsize="17">01 营销效果概览｜RetailHero</run>
+            <run fontsize="10">
+离线估计；e=0.5 未核实；区间条件于固定模型。测试集此前已查看。</run>
+          </formatted-text>
+        </zone>
+        <zone id="2" name="01 两组购买率｜全样本描述" type-v2="viz" show-title="true" x="2000" y="11000" w="96000" h="36000" />
+        <zone id="3" name="02 策略收益｜既有测试集·20%触达" type-v2="viz" show-title="true" x="2000" y="48000" w="96000" h="36000" />
+      </zones>
+    </dashboard>
+    <dashboard name="02 策略比较与校准">
+      <size maxheight="900" maxwidth="1200" minheight="900" minwidth="1200" sizing-mode="fixed" />
+      <zones>
+        <zone id="1" type-v2="text" x="2000" y="1000" w="96000" h="9000">
+          <formatted-text>
+            <run bold="true" fontsize="17">02 策略比较与校准｜RetailHero</run>
+            <run fontsize="10">
+离线估计；e=0.5 未核实；区间条件于固定模型。测试集此前已查看。</run>
+          </formatted-text>
+        </zone>
+        <zone id="2" name="03 策略差异95%区间｜既有测试集" type-v2="viz" show-title="true" x="2000" y="11000" w="96000" h="23666" />
+        <zone id="3" name="04 触达比例曲线｜验证集探索" type-v2="viz" show-title="true" x="2000" y="35666" w="96000" h="23666" />
+        <zone id="4" name="05 分组DR效果｜验证集" type-v2="viz" show-title="true" x="2000" y="60333" w="96000" h="23666" />
+      </zones>
+    </dashboard>
+    <dashboard name="03 人群与成本情景">
+      <size maxheight="900" maxwidth="1200" minheight="900" minwidth="1200" sizing-mode="fixed" />
+      <datasources>
+        <datasource name="Parameters" />
+      </datasources>
+      <datasource-dependencies datasource="Parameters">
+        <column name="[Margin]" caption="假设单客贡献毛利" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="30">
+          <calculation class="tableau" formula="30" />
+          <range min="0" max="1000" granularity=".1" />
+        </column>
+        <column name="[ContactCost]" caption="假设单次触达成本" datatype="real" role="measure" type="quantitative" param-domain-type="range" value="0.5">
+          <calculation class="tableau" formula="0.5" />
+          <range min="0" max="1000" granularity=".1" />
+        </column>
+      </datasource-dependencies>
+      <zones>
+        <zone id="1" type-v2="text" x="2000" y="1000" w="96000" h="9000">
+          <formatted-text>
+            <run bold="true" fontsize="17">03 人群与成本情景｜RetailHero</run>
+            <run fontsize="10">
+离线估计；e=0.5 未核实；区间条件于固定模型。测试集此前已查看。</run>
+          </formatted-text>
+        </zone>
+        <zone id="2" name="06 选中客户消费画像｜验证集" type-v2="viz" show-title="true" x="2000" y="17000" w="96000" h="33000" />
+        <zone id="3" name="07 净收益情景｜假设金额·验证集" type-v2="viz" show-title="true" x="2000" y="51000" w="96000" h="33000" />
+        <zone id="90" type-v2="paramctrl" param="[Parameters].[Margin]" x="2000" y="10000" w="46000" h="6000" />
+        <zone id="91" type-v2="paramctrl" param="[Parameters].[ContactCost]" x="50000" y="10000" w="46000" h="6000" />
+      </zones>
+    </dashboard>
+  </dashboards>
+  <windows source-height="900">
+    <window class="dashboard" name="01 营销效果概览">
+      <viewpoints>
+        <viewpoint name="01 两组购买率｜全样本描述">
+          <zoom type="entire-view" />
+        </viewpoint>
+        <viewpoint name="02 策略收益｜既有测试集·20%触达">
+          <zoom type="entire-view" />
+        </viewpoint>
+      </viewpoints>
+    </window>
+    <window class="dashboard" name="02 策略比较与校准">
+      <viewpoints>
+        <viewpoint name="03 策略差异95%区间｜既有测试集">
+          <zoom type="entire-view" />
+        </viewpoint>
+        <viewpoint name="04 触达比例曲线｜验证集探索">
+          <zoom type="entire-view" />
+        </viewpoint>
+        <viewpoint name="05 分组DR效果｜验证集">
+          <zoom type="entire-view" />
+        </viewpoint>
+      </viewpoints>
+    </window>
+    <window class="dashboard" name="03 人群与成本情景">
+      <viewpoints>
+        <viewpoint name="06 选中客户消费画像｜验证集">
+          <zoom type="entire-view" />
+        </viewpoint>
+        <viewpoint name="07 净收益情景｜假设金额·验证集">
+          <zoom type="entire-view" />
+        </viewpoint>
+      </viewpoints>
+    </window>
+    <window class="worksheet" name="01 两组购买率｜全样本描述">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="02 策略收益｜既有测试集·20%触达">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="03 策略差异95%区间｜既有测试集">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="04 触达比例曲线｜验证集探索">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="05 分组DR效果｜验证集">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="06 选中客户消费画像｜验证集">
+      <zoom type="entire-view" />
+    </window>
+    <window class="worksheet" name="07 净收益情景｜假设金额·验证集">
+      <zoom type="entire-view" />
+    </window>
+  </windows>
+</workbook>

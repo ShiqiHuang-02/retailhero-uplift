@@ -1,0 +1,40 @@
+{
+  "baseline": "before_reproducibility_20261025",
+  "strict": false,
+  "checks": [
+    "train: membership, order, labels and features/predictions match",
+    "validation: membership, order, labels and features/predictions match",
+    "test: membership, order, labels and features/predictions match"
+  ],
+  "table_max_abs_differences": {
+    "test_policy_comparisons.csv": 0.014010230590068673,
+    "test_policy_results.csv": 0.014010844049109572,
+    "validation_budget_curve.csv": 0.046981420374400784,
+    "validation_dr_ipw_comparisons.csv": 1.5573135126345505e-05,
+    "validation_dr_ipw_gains.csv": 1.2839350887361434e-05,
+    "validation_policy_comparisons.csv": 1.5573135126345505e-05,
+    "validation_policy_results.csv": 1.2839350887361434e-05,
+    "validation_prediction_metrics.csv": 9.732821082408805e-08,
+    "validation_uplift_summary.csv": 2.4886907140000275e-06
+  },
+  "validation_prediction_max_abs_differences": {
+    "response_score": 0.0,
+    "p0": 0.0,
+    "p1": 7.055188571991611e-05,
+    "uplift_score": 7.055188571991611e-05
+  },
+  "validation_top20_replaced_customers": {
+    "response_score": 0,
+    "p0": 0,
+    "p1": 0,
+    "uplift_score": 0
+  },
+  "executed_code_cells": 55,
+  "test_uplift_gain_per_1000": 10.85883541229351,
+  "test_uplift_minus_response_per_1000": 8.286214701372499,
+  "status": "baseline_comparison_completed_differences_reported",
+  "test_top20_replaced_customers": {
+    "p1": 1,
+    "uplift": 0
+  }
+}

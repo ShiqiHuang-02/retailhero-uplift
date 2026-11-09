@@ -1,0 +1,35 @@
+# Python environment and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# Local editor/OS settings and credentials
+.DS_Store
+.vscode/
+.idea/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Input data, customer-level data, and trained objects stay local
+/data/raw/
+/data/processed/
+/data/splits/assignments.csv
+*.parquet
+*.joblib
+*.npy
+*.npz
+*.duckdb
+*.duckdb.wal
+
+# Local backups, temporary assets and machine-specific installation records
+/work/
+/reports/portfolio/installation.json
+*.log
+*.repro-pending

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "origin": "Existing processed datasets; exact membership and row order preserved. Original splitting algorithm is not reconstructed.",
+  "counts": {
+    "train": 120023,
+    "validation": 40008,
+    "test": 40008
+  },
+  "assignments_sha256": "85d5e9440c03468cde7afa4afcbd734e28b826f693b79a43af12b82f53df013c",
+  "source_parquet_sha256": {
+    "train": "557e027d6bcdfd8d74bd353bc5fb43cbd405c29743db3c42ddfae6adf0b25f36",
+    "validation": "8a7c29eaf7d9189033d06924255859235e386c8fd840372d7878e2346cea5ff0",
+    "test": "faf25ccd9228e77b7a31daf3474875e7d5726a3ad72868575304e014f84bb06e"
+  },
+  "source_labels_sha256": "23aced68634c605acb93a7ab450aabac1a0ce0c8104e59ffed9941109ddc4ccd"
+}

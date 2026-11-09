@@ -1,0 +1,44 @@
+{
+  "budget_share": 0.2,
+  "primary_comparison": "Uplift - Response",
+  "propensity": 0.5,
+  "propensity_status": "assumed_unverified",
+  "rfm_thresholds": {
+    "recency_days": [
+      2.0,
+      4.0,
+      7.0,
+      11.0
+    ],
+    "txn_count_history": [
+      7.0,
+      12.0,
+      19.0,
+      30.0
+    ],
+    "spend_history": [
+      2627.0820000000003,
+      4814.954000000001,
+      7677.168,
+      12764.446
+    ]
+  },
+  "tie_breaker": "client_id_ascending",
+  "config_version": 2,
+  "ranking_columns": {
+    "RFM": "rfm_score",
+    "Response": "response_score",
+    "Response_p1": "p1",
+    "Uplift": "uplift_score"
+  },
+  "comparison_baselines": [
+    "Response",
+    "Response_p1",
+    "Random",
+    "RFM"
+  ],
+  "added_exploratory_comparisons": [
+    "Uplift - Response_p1"
+  ],
+  "test_set_status": "previously_examined"
+}

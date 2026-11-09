@@ -1,0 +1,37 @@
+{
+  "feature_columns": [
+    "age_clean",
+    "age_review_flag",
+    "recency_days",
+    "txn_count_history",
+    "spend_history",
+    "avg_transaction_amount",
+    "txn_count_30d",
+    "spend_30d",
+    "zero_amount_txn_count",
+    "gender"
+  ],
+  "numeric_features": [
+    "age_clean",
+    "age_review_flag",
+    "recency_days",
+    "txn_count_history",
+    "spend_history",
+    "avg_transaction_amount",
+    "txn_count_30d",
+    "spend_30d",
+    "zero_amount_txn_count"
+  ],
+  "categorical_features": [
+    "gender"
+  ],
+  "random_state": 42,
+  "feature_cutoff": "2019-03-19 00:00:00",
+  "train_customers": 120023,
+  "validation_customers": 40008,
+  "test_customers": 40008,
+  "sklearn_version": "1.9.1",
+  "pandas_version": "3.0.6",
+  "duckdb_version": "1.5.6",
+  "joblib_version": "1.6.0"
+}

@@ -1,0 +1,36 @@
+{
+  "baseline": "repeat-baseline",
+  "strict": true,
+  "checks": [
+    "train: membership, order, labels and features/predictions match",
+    "validation: membership, order, labels and features/predictions match",
+    "test: membership, order, labels and features/predictions match"
+  ],
+  "table_max_abs_differences": {
+    "test_policy_comparisons.csv": 0.0,
+    "test_policy_results.csv": 0.0,
+    "validation_budget_curve.csv": 0.0,
+    "validation_dr_ipw_comparisons.csv": 0.0,
+    "validation_dr_ipw_gains.csv": 0.0,
+    "validation_policy_comparisons.csv": 0.0,
+    "validation_policy_results.csv": 0.0,
+    "validation_prediction_metrics.csv": 0.0,
+    "validation_uplift_summary.csv": 0.0
+  },
+  "validation_prediction_max_abs_differences": {
+    "response_score": 0.0,
+    "p0": 0.0,
+    "p1": 0.0,
+    "uplift_score": 0.0
+  },
+  "validation_top20_replaced_customers": {
+    "response_score": 0,
+    "p0": 0,
+    "p1": 0,
+    "uplift_score": 0
+  },
+  "executed_code_cells": 55,
+  "test_uplift_gain_per_1000": 10.85883541229351,
+  "test_uplift_minus_response_per_1000": 8.286214701372499,
+  "status": "strict_comparison_passed"
+}

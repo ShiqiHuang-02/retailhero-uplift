@@ -1,0 +1,28 @@
+{
+  "split_disjoint": true,
+  "validation_original_max_abs_error": 4.078515303262975e-11,
+  "test_original_max_abs_error": 5.4654947234666906e-11,
+  "unique_customer_strategy_keys": true,
+  "curve_endpoints": true,
+  "overlap_diagonal": true,
+  "zero_contact_zero_cost": true,
+  "raw_feature_max_abs_error": 0.0,
+  "transaction_conflicts": 0,
+  "raw_transaction_count": 8045229,
+  "raw_detail_count": 45786568,
+  "bootstrap_reps": 3000,
+  "bootstrap_scope": "fixed model, fixed scores, fixed selection; IID paired customer resampling",
+  "tableau_native_validation": "not performed; Tableau unavailable",
+  "existing_model_sha256": {
+    "tlearner_m1.joblib": "cdcf68701a02707d35b36595066f364cbbf8d6555e2614a3a2d2405a2f30e926",
+    "response_model.joblib": "bd769d30b00e2430dc66667384cc048ff6db898e1d21ae99215f9e2b87cbfd17",
+    "tlearner_m0.joblib": "198cf9ee68c9df2c3bee9ccb7f193ff2632d0e5bc9e93a097f6093218e4f3b99"
+  },
+  "synthetic_pairing_and_selection_invariants": true,
+  "calibration_grouping": "original qcut equal-frequency convention",
+  "tableau_xml_and_packaged_data_checks": true,
+  "tableau_worksheet_count": 7,
+  "tableau_dashboard_count": 3,
+  "notebook_executed_code_cells": 7,
+  "notebook_execution_method": "IPython in-process; Jupyter socket startup unavailable in current environment"
+}
