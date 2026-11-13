@@ -1,0 +1,30 @@
+{
+  "baseline": "before_robustness_20261113",
+  "checks": [
+    "train: membership, row order, labels and values unchanged within 1e-10",
+    "validation: membership, row order, labels and values unchanged within 1e-10",
+    "test: membership, row order, labels and values unchanged within 1e-10",
+    "validation_scores: membership, row order, labels and values unchanged within 1e-10",
+    "All three original classifiers retain their hyperparameters",
+    "Existing portfolio notebook preserved byte-for-byte",
+    "Completed audit: input/source/output hashes, all five splits, 500 bootstrap draws and result tables verified"
+  ],
+  "table_max_abs_differences": {
+    "test_policy_comparisons.csv": 8.881784197001252e-16,
+    "test_policy_results.csv": 1.7763568394002505e-15,
+    "validation_budget_curve.csv": 1.0658141036401503e-14,
+    "validation_dr_ipw_comparisons.csv": 3.552713678800501e-15,
+    "validation_dr_ipw_gains.csv": 1.7763568394002505e-15,
+    "validation_policy_comparisons.csv": 2.6645352591003757e-15,
+    "validation_policy_results.csv": 1.7763568394002505e-15,
+    "validation_prediction_metrics.csv": 0.0,
+    "validation_uplift_summary.csv": 0.0
+  },
+  "executed_code_cells": {
+    "01_data_exploration.ipynb": 31,
+    "02_modeling.ipynb": 10,
+    "03_policy_evaluation.ipynb": 14,
+    "05_robustness_and_business.ipynb": 8
+  },
+  "status": "passed"
+}

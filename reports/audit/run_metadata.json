@@ -1,0 +1,52 @@
+{
+  "status": "completed",
+  "started_utc": "2026-11-13T08:45:18.798748+00:00",
+  "python": "3.14.7 (v3.14.7:823f0323ee6, Aug  5 2026, 07:07:01) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.4",
+  "pandas": "3.0.6",
+  "sklearn": "1.9.1",
+  "duckdb": "1.5.6",
+  "joblib": "1.6.0",
+  "bootstrap_repeats": 500,
+  "bootstrap_seed": 20261113,
+  "split_seeds": [
+    101,
+    202,
+    303,
+    404,
+    505
+  ],
+  "input_sha256": {
+    "data/processed/train.parquet": "f3cff1fc9ee61e6fb1a6d7d520afa525408f6b51f87f5c9e2b3973947cc34a30",
+    "data/processed/validation.parquet": "e5768d27303cbb26de1194dc94d6e076a4bd707cdf45c54a63b05598291d7f2c",
+    "data/processed/test.parquet": "0b092fb09cec38e0648f07d5bda83ffccedf4825679ac2a2a047cd894fa74adc",
+    "models/model_config.json": "0743be51290924a2ece83c1a5c32d9fc244d83844822bd287dd0184d6d357f28",
+    "models/policy_config.json": "86afb70d1e18ef0750cdd366f81665968b89682582e7efdbba1fa1a82a581163",
+    "models/response_model.joblib": "bd769d30b00e2430dc66667384cc048ff6db898e1d21ae99215f9e2b87cbfd17",
+    "models/tlearner_m0.joblib": "198cf9ee68c9df2c3bee9ccb7f193ff2632d0e5bc9e93a097f6093218e4f3b99",
+    "models/tlearner_m1.joblib": "cdcf68701a02707d35b36595066f364cbbf8d6555e2614a3a2d2405a2f30e926"
+  },
+  "scope": "exploratory_development_analysis_original_test_not_evaluated",
+  "source_hash_scope": "Python file bytes; notebook cell types and sources excluding outputs",
+  "source_sha256": {
+    "src/audit_core.py": "9f475509cfb54783f6f95eaf13ed91e5eda02347f54e4ab3e4b9afb62947a97b",
+    "src/causal_robustness.py": "476e68430f76a8c59c5277473a1275adada1a9e564d456e9cc07addb9215ddf0",
+    "05_robustness_and_business.ipynb": "be54cd3038b33e0831e904e9448e8ea4c95955981787a7457cee9f928dc4bbf9"
+  },
+  "completed_utc": "2026-11-13T08:45:47.543677+00:00",
+  "output_sha256": {
+    "reports/audit/customer_bootstrap_results.csv": "3f592546c3140080d2a9ade8a63a8d7482aab07274ad94122ccb701facb98a47",
+    "reports/audit/customer_gender_profiles.csv": "70e403879c2910023e3d109826b74e9842dff84e51f552526a33c727d12040d4",
+    "reports/audit/customer_numeric_profiles.csv": "014342a00e90dd9ae107e0f3e4d44a4eb303ede0552d9c1bf358db5386c8d60b",
+    "reports/audit/illustrative_cost_scenarios.csv": "e4f4365834209703ab03f6d0c6303aeeb46f7ab4f04c34ab785bb4f6380e65a4",
+    "reports/audit/propensity_diagnostics.csv": "3472c02eb740fef2155b7301f366cca37a86d9f5e12db45be21c700fa6141cf8",
+    "reports/audit/propensity_sensitivity_differences.csv": "ad7587a45de6e6c998dbb3854f7944950eb1ceaf7999136510dd34fe0e4c32ab",
+    "reports/audit/propensity_sensitivity_gains.csv": "d8645cfd01839ad3ac69d58eede33b15b428448ff50cab000eb2be701ea234ac",
+    "reports/audit/repeated_split_descriptive_summary.csv": "915fb39d39b28bbec532d01ac49d9febedf5975d3cd11e229f7198d2ffa854c2",
+    "reports/audit/repeated_split_details.csv": "e153c742c1a5c997e7f98f9ad75381226f675ededa263fc5cc4721be2a97ad7e",
+    "reports/audit/slearner_strategy_differences.csv": "7c3bec02fc7c8c143a910d169074808867e5e3c6a5e8536ce90dcbf056ec78d7",
+    "reports/audit/slearner_strategy_gains.csv": "798015a65bc6ca573536c2c11fdcac9b370cfcd6440e1c9ef648811b87e76a83",
+    "reports/audit/strategy_overlap.csv": "60432dc731d7827ad20c109d4a66b16b4c347c7b9df21604ce3759af5dde4b9c"
+  }
+}

@@ -1,0 +1,10 @@
+kind,comparison,estimate_per_1000,ci_low,ci_high,repeats,seed,interval
+gain,RFM,2.808993259832423,0.5090465054775004,5.367433225985572,500,20261113,percentile_customer_bootstrap_fixed_models
+gain,Response,2.7785955109499882,0.6320321809758405,5.461970856219986,500,20261113,percentile_customer_bootstrap_fixed_models
+gain,Response_p1,3.8240689858609263,1.362290201842104,6.2489564376031215,500,20261113,percentile_customer_bootstrap_fixed_models
+gain,Uplift,10.733906345739287,6.555633637168904,14.793425323532345,500,20261113,percentile_customer_bootstrap_fixed_models
+gain,Random,6.38411333297071,4.751345044547376,8.070149311200076,500,20261113,percentile_customer_bootstrap_fixed_models
+paired_difference,Uplift - RFM,7.924913085906864,3.0371247624245874,12.451808804373053,500,20261113,percentile_customer_bootstrap_fixed_models
+paired_difference,Uplift - Response,7.955310834789299,2.984912043340144,12.296335210529815,500,20261113,percentile_customer_bootstrap_fixed_models
+paired_difference,Uplift - Response_p1,6.909837359878361,2.2631283203577715,11.32707089587243,500,20261113,percentile_customer_bootstrap_fixed_models
+paired_difference,Uplift - Random,4.349793012768577,0.8056095950290662,7.810563779425094,500,20261113,percentile_customer_bootstrap_fixed_models

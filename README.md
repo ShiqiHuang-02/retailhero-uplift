@@ -71,19 +71,21 @@ DR 和 IPW 均采用尚未核实的恒定处理概率 `e=0.5`。已观测特征�
 
 ## 文件与复现状态
 
-三个 notebook 位于项目根目录，按 01 → 02 → 03 阅读。执行时工作目录应为项目根目录，以匹配代码中的相对路径。
+五个 notebook 位于项目根目录。01 → 02 → 03 是主分析，04 是既有求职展示，05 是新增稳健性分析。执行时工作目录应为项目根目录，以匹配代码中的相对路径。
 
 | 文件 | 内容 |
 |---|---|
 | [01_data_exploration.ipynb](01_data_exploration.ipynb) | 数据审计、特征构造、总体差异、划分核对 |
 | [02_modeling.ipynb](02_modeling.ipynb) | 购买预测、T-learner、验证集校准 |
 | [03_policy_evaluation.ipynb](03_policy_evaluation.ipynb) | 五策略比较、DR/IPW 核对、预算曲线 |
+| [04_portfolio_analysis.ipynb](04_portfolio_analysis.ipynb) | 既有客户画像、成本情景及展示图表 |
+| [05_robustness_and_business.ipynb](05_robustness_and_business.ipynb) | 处理概率敏感性、S-learner、重选前 20% 的 bootstrap、五次划分稳定性 |
 | [docs/research_design.md](docs/research_design.md) | 研究设计、识别假设、来源与未确认项 |
 | [docs/revision_notes.md](docs/revision_notes.md) | 本次改动范围、结果定位与验证记录 |
 
-**本地已具备：**原始客户、交易和标签文件，固定客户划分清单，三个 notebook，模型与报告，现有 `.venv` 及固定依赖版本的 `requirements.txt`。
+**本地已具备：**原始客户、交易和标签文件，固定客户划分清单，五个 notebook，模型与报告，现有 `.venv` 及固定依赖版本的 `requirements.txt`。
 
-**复现入口：**在项目根目录执行 `.venv/bin/python -B scripts/run_pipeline.py`，依次重建特征、训练模型并评价策略。完整执行会更新当前模型、报告、处理后数据及 notebook 输出；重要结果先备份，或在副本中运行。
+**复现入口：**在项目根目录执行 `.venv/bin/python -B run_project.py`，依次执行 01 → 02 → 03 → 05。已有主分析输出时可加 `--steps 5` 只运行新增分析；不能启动 Jupyter 内核时可加 `--engine inprocess`，仍为每份 notebook 创建独立 Python 进程并保存图表输出。完整执行会更新当前模型、报告、处理后数据及 notebook 输出；重要结果先备份，或在副本中运行。
 
 **固定划分：**`data/splits/assignments.csv` 与 `metadata.json` 独立保留原客户名单、顺序及标签。即使没有旧 `data/processed/`，也能从原始数据和清单恢复同一分析。清单丢失时必须从备份恢复，不能静默重新抽样。
 
@@ -91,7 +93,7 @@ DR 和 IPW 均采用尚未核实的恒定处理概率 `e=0.5`。已观测特征�
 
 后续研究改进应预先固定模型比较与评价规则。重新划分或重跑已分析的数据不能自动恢复全新测试集的证据地位。
 
-本轮完整验证：7 项划分恢复检查通过；55 个代码单元格全部成功；新版连续两次运行的验证预测与 9 张结果表完全一致。相对旧版，部分补充比较有小幅变化（例如 Response_p1 由 3.05 变为 3.04 人／千人），当前表格使用本次完整运行的结果。详见 [本轮复现记录](docs/reproducibility_validation.md)。
+2026-10-25 版本验证：7 项划分恢复检查通过；55 个代码单元格全部成功；新版连续两次运行的验证预测与 9 张结果表完全一致。相对旧版，部分补充比较有小幅变化（例如 Response_p1 由 3.05 变为 3.04 人／千人），当前表格使用本次完整运行的结果。详见 [本轮复现记录](docs/reproducibility_validation.md)。
 
 ## 求职展示增强（2026-11-09）
 
@@ -110,10 +112,23 @@ DR 和 IPW 均采用尚未核实的恒定处理概率 `e=0.5`。已观测特征�
 
 复现新增内容：`.venv/bin/python -B scripts/build_portfolio.py --audit-raw`。
 
+## 稳健性补充（2026-11-13）
+
+已将修订直接合并到本地项目，并用现有原始数据及 Python 3.14.7 环境执行 01、02、03、05。原 04 展示 notebook 保留。新增内容见 [05_robustness_and_business.ipynb](05_robustness_and_business.ipynb)、[结果摘要](reports/audit/summary.md) 和 [修改与验证说明](docs/robustness_revision.md)。
+
+- 补充 ID、标签、交易金额冲突及特征关联的阻断检查。
+- 比较固定处理概率 0.5、训练集实际比例、训练集逻辑回归 `e(X)`；验证集主比较 DR 点估计为 **7.96–8.01 人／千人**。
+- 五次开发集划分的 Uplift − Response DR 点估计均为正，范围 **5.54–13.36 人／千人**；这些是相关的描述性重复结果。
+- 验证集 500 次客户 bootstrap 每次重新选择前 20%，主比较近似 95% 区间为 **[2.98, 12.30] 人／千人**。与 04 中固定选人名单的测试集 bootstrap 属于不同评价，不应混用。
+- 增加同基础分类器的 S-learner。T-learner − S-learner 的 DR 差异为 **−1.98 [−5.60, 1.63]**，IPW 为 **−6.00 [−11.63, −0.37]**。S-learner 点估计更高，不能宣称原 T-learner 已是最优模型。
+- 补充客户数值画像、性别构成、名单重合率及假设成本情景。
+
+**验证：**22 项测试、63 个代码单元格通过；原划分、特征与预测通过核对，九张原结果表最大差异约 1.1e-14。新增分析未在原测试集上进行模型选择或策略评价。验证记录见 [robustness_revision_check.json](reports/robustness_revision_check.json)。
+
 ## Git 仓库与数据边界
 
 项目源于因果推断课程作业，后续完善了分析与复现流程。第一版以 `v0.1.0` 标记，具体提交和标签以 Git 历史为准。管理方法见 [版本管理说明](docs/version_control.md)，版本范围见 [CHANGELOG](CHANGELOG.md)。
 
-Git 跟踪源码、四份 notebook、配置、文档和汇总展示材料。原始数据、客户名单 `data/splits/assignments.csv`、处理后数据、训练模型、虚拟环境及本地备份不进入代码仓库。现有 notebook 保留运行输出及少量数据示例。
+Git 跟踪源码、五份 notebook、配置、文档和汇总展示材料。原始数据、客户名单 `data/splits/assignments.csv`、处理后数据、训练模型、虚拟环境及本地备份不进入代码仓库。现有 notebook 保留运行输出及少量数据示例。
 
 仅克隆仓库无法直接复现全部分析：须自行取得原始数据、恢复同一固定客户清单并建立环境。`metadata.json` 用于校验，不能替代名单；GitHub 上的代码副本也不能代替本地数据备份。

@@ -12,7 +12,7 @@ data/splits/assignments.csv
 data/splits/metadata.json
 ```
 
-原始数据在当前本地项目中已具备。迁移到另一台电脑时，需要自行准备上述输入，并保留三个 notebook、`src/`、`scripts/` 和 `requirements.txt`。不要将本机 `.venv` 直接复制为另一台机器的环境。
+原始数据在当前本地项目中已具备。迁移到另一台电脑时，需要自行准备上述输入，并保留五个 notebook、`src/`、`scripts/` 和 `requirements.txt`。不要将本机 `.venv` 直接复制为另一台机器的环境。
 
 `assignments.csv` 保存原有 200,039 名客户的集合归属、内部顺序和两项标签，不包含重新计算的行为特征。`metadata.json` 保存人数与 SHA-256 校验值。清单来自既有 processed 文件的一次性导出，没有重新抽样，也没有声称重建最初划分算法。
 
@@ -27,11 +27,25 @@ data/splits/metadata.json
 .venv/bin/python -B scripts/run_pipeline.py
 ```
 
-第一条运行名单恢复与异常输入检查。第二条依次执行 01 → 02 → 03，每份 notebook 使用独立内核，且采用启动脚本的同一 Python 环境，避免误用其他 Jupyter 环境。
+第一条运行划分恢复、DR/IPW、bootstrap 和模拟数据集成测试。第二条依次执行 01 → 02 → 03 → 05，每份 notebook 使用独立内核，且采用启动脚本的同一 Python 环境。`run_project.py` 是同一入口的简写。04 展示内容仍由 `scripts/build_portfolio.py` 生成。
 
-完整运行会重建 `data/processed/`、`models/` 和 `reports/` 下的当前输出，并更新三个 notebook 的运行结果。已有重要结果请先备份，或在独立项目副本中运行。本次验证是在没有 processed、模型或报告文件的独立目录中开始的。
+只运行新增分析：
 
-如果选择手动使用 Jupyter，打开项目根目录，确认内核属于该项目 `.venv`，按 01 → 02 → 03 从头执行。
+```bash
+.venv/bin/python -B run_project.py --steps 5
+```
+
+无需 Jupyter 端口的运行方式（本轮使用）：
+
+```bash
+.venv/bin/python -B run_project.py --engine inprocess
+```
+
+该模式使用独立 IPython 子进程执行每份 notebook，保存表格、图像与错误输出，任一单元失败立即停止。只重跑主分析可用 `--steps 1 2 3`。
+
+完整运行会重建 `data/processed/`、`models/` 和 `reports/` 下的当前输出，并更新 01、02、03、05 的运行结果。已有重要结果请先备份，或在独立项目副本中运行。2026-10-25 的首次复现是在没有 processed、模型或报告文件的独立目录中开始的；2026-11-13 本轮在本地备份后重建，详见 `robustness_revision.md`。
+
+如果选择手动使用 Jupyter，打开项目根目录，确认内核属于该项目 `.venv`，按 01 → 02 → 03 → 05 从头执行。
 
 ## 新环境准备
 
@@ -60,7 +74,16 @@ python3.14 -m venv .venv
 
 输出目录已经存在时工具拒绝覆盖。哈希用于发现意外改动，不是防止恶意篡改的数字签名；比较基准应保留在独立备份中。
 
-## 如何核对独立重跑
+## 本次修改前后的核对
+
+```bash
+.venv/bin/python -B scripts/verify_robustness_revision.py \
+  --baseline work/backups/before_robustness_20261113
+```
+
+核对原客户划分、特征、预测、九张结果表、主模型参数、04 原文件，以及新增分析的输入／代码／输出哈希和执行状态。报告位于 `reports/robustness_revision_check.json`。
+
+## 如何核对同版本独立重跑
 
 在完成运行的项目副本中执行：
 

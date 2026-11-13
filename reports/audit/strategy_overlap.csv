@@ -1,0 +1,3 @@
+comparison,intersection,selected_each,overlap_share,jaccard
+Uplift vs Response,80,8002,0.009997500624843789,0.005023863350916855
+Uplift vs Response_p1,129,8002,0.01612096975756061,0.008125984251968504
