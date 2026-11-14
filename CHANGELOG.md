@@ -6,6 +6,7 @@
 - 新增 `scripts/run_method_comparison.py`：在验证集上对比 T/S/X-learner 的 Qini/AUUC 与 20% DR 策略价值，不触碰测试集。
 - 新增合成数据 demo 一键入口（`run_project.py --demo` 与 `scripts/make_demo_data.py`），供招聘方在无真实数据时复现主流程。
 - 新增 Streamlit 交互看板（`dashboard/app.py`）与一页业务简报（`docs/business_brief.md`）。
+- 新增预算优化脚本（`scripts/run_budget_optimization.py`）：在验证集预算曲线上按毛利/成本寻优触达比例。
 - README 增补 TL;DR 与「1 分钟体验」说明。
 
 ## 2026-11-13 — 稳健性与本地真实数据验证

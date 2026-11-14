@@ -1,0 +1,6 @@
+strategy,optimal_contact_share,optimal_net_per_1000,net_ci_low,net_ci_high,gain_at_opt
+RFM,0.0,0.0,0.0,0.0,0.0
+Random,0.0,0.0,0.0,0.0,0.0
+Response,0.0,0.0,0.0,0.0,0.0
+Response_p1,0.0,0.0,0.0,0.0,0.0
+Uplift,0.05,21.1103,-0.1146,42.3352,4.6105

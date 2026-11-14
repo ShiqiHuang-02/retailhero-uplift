@@ -58,6 +58,16 @@ $$
 
 以**相对完全不触达时，每千名候选客户的预计新增购买人数**衡量策略价值。主要采用双重稳健（Doubly Robust，DR）估计，并使用逆概率加权（Inverse Probability Weighting，IPW）进行补充分析。对于策略之间的差异，采用客户层面的配对估计。
 
+### 3. 预算优化（触达比例的净收益寻优）
+
+在验证集预算曲线上，给定假设毛利 `margin` 与触达成本 `cost`，寻找使净收益 `gain_per_1000 × margin − contacts_per_1000 × cost` 最大的触达比例：
+
+```bash
+.venv/bin/python -B scripts/run_budget_optimization.py --margin 10 --cost 0.5
+```
+
+结论随成本/毛利变化：低成本时最优趋近 100%；成本较高时仅 Uplift 策略在小比例触达下仍保持正净收益（其增量集中在排序顶部），其余策略净收益归零。该最优在**验证集**上选出，存在选后偏差，需测试集或线上实验确认。20% 仍是本项目的主要业务情景，而非经优化得到的预算。
+
 ## 主要结果
 
 全样本中，触达组购买率为 **63.65%**，对照组为 **60.33%**，观察到的差异为 **3.32 个百分点**（近似 95% 置信区间：[2.90, 3.75] 个百分点）。这一数值首先反映组间购买率差异，其因果解释取决于处理分配机制等识别条件。
@@ -96,6 +106,7 @@ $$
 | [`04_portfolio_analysis.ipynb`](04_portfolio_analysis.ipynb) | 客户画像、名单重合度、成本情景及展示分析          |
 | [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb) | 处理概率敏感性、S-learner、Bootstrap 与划分稳定性 |
 | [`scripts/run_method_comparison.py`](scripts/run_method_comparison.py) | T/S/X-learner 对比、Qini/AUUC 与策略价值      |
+| [`scripts/run_budget_optimization.py`](scripts/run_budget_optimization.py) | 触达比例的净收益寻优                          |
 | [`dashboard/app.py`](dashboard/app.py)                         | Streamlit 交互看板（策略对比、预算曲线、净收益） |
 | [`docs/`](docs/)                                             | 研究设计、数据说明、复现方法和分析记录            |
 | [`reports/`](reports/)                                       | 结果表格、图表及离线展示材料                      |
@@ -141,6 +152,12 @@ $$
 ```
 
 输出至 `reports/method_comparison/`。真实数据上会重新训练多个模型，需数分钟。
+
+在验证集预算曲线上做触达比例的净收益寻优（需先运行 `build_portfolio.py`）：
+
+```bash
+.venv/bin/python -B scripts/run_budget_optimization.py --margin 10 --cost 0.5
+```
 
 启动交互看板（需额外安装 Streamlit）：
 
