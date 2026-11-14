@@ -6,6 +6,18 @@
 
 项目以**触达 20% 候选客户**为主要业务情景。该比例是预设的容量约束，并非经优化得到的最优预算；项目采用的策略价值指标也不同于官方竞赛的排名指标。
 
+## TL;DR
+
+**一句话：** 用 uplift modeling（因果推断）在有限营销预算下选对触达人群——20% 触达比例下，Uplift 选人策略相比普通购买概率模型**每千人平均多带来 8.29 名购买客户**（近似 95% CI [3.55, 13.02]）。
+
+**技术栈：** DuckDB SQL 特征工程 · T-learner / S-learner · DR / IPW / Bootstrap 离线评价 · 倾向得分敏感性 · 可复现工程（22 个单元测试）。
+
+**1 分钟体验（无需 581 MB 真实数据）：**
+
+```bash
+.venv/bin/python -B run_project.py --demo
+```
+
 ## 数据说明
 
 数据来自 [X5 RetailHero Uplift Modeling](https://ods.ai/competitions/x5-retailhero-uplift-modeling)。分析对象为 200,039 名有标签客户，其中触达组 99,981 人、对照组 100,058 人。每位客户对应一条建模记录。
@@ -32,7 +44,7 @@ $$
 \hat\tau(x) = \hat P(Y=1\mid X=x,T=1)-\hat P(Y=1\mid X=x,T=0)
 $$
 
-以 `\hat\tau(x)` 作为客户的预测 Uplift 分数，用于排序和名额分配。同时训练常规购买响应模型，并引入 S-learner 作为补充比较。建模与验证集诊断见 [`02_modeling.ipynb`](02_modeling.ipynb) 和 [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb)。
+以 `\hat\tau(x)` 作为客户的预测 Uplift 分数，用于排序和名额分配。同时训练常规购买响应模型，并引入 S-learner 与 X-learner 作为补充比较（三者均以 `HistGradientBoosting` 为基学习器、手写实现，未引入外部因果推断库）。三个 meta-learner 在验证集上用 **Qini 曲线 / AUUC** 与 20% DR 策略价值做模型对比，见 [`scripts/run_method_comparison.py`](scripts/run_method_comparison.py)。建模与验证集诊断见 [`02_modeling.ipynb`](02_modeling.ipynb) 和 [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb)。
 
 ### 2. 策略比较与离线评价
 
@@ -83,12 +95,24 @@ $$
 | [`03_policy_evaluation.ipynb`](03_policy_evaluation.ipynb)   | 触达策略比较、DR/IPW 评价及预算分析               |
 | [`04_portfolio_analysis.ipynb`](04_portfolio_analysis.ipynb) | 客户画像、名单重合度、成本情景及展示分析          |
 | [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb) | 处理概率敏感性、S-learner、Bootstrap 与划分稳定性 |
+| [`scripts/run_method_comparison.py`](scripts/run_method_comparison.py) | T/S/X-learner 对比、Qini/AUUC 与策略价值      |
+| [`dashboard/app.py`](dashboard/app.py)                         | Streamlit 交互看板（策略对比、预算曲线、净收益） |
 | [`docs/`](docs/)                                             | 研究设计、数据说明、复现方法和分析记录            |
 | [`reports/`](reports/)                                       | 结果表格、图表及离线展示材料                      |
 
-补充材料包括 [HTML 分析报告](reports/portfolio/项目展示报告.html)、[线上实验方案](docs/online_experiment_plan.md) 和 [Tableau 工作簿草稿](tableau/RetailHero_营销决策_草稿.twbx)。Tableau 文件尚未在原生软件中完成验证。
+补充材料包括 [业务简报](docs/business_brief.md)、[交互看板](dashboard/app.py)、[HTML 分析报告](reports/portfolio/项目展示报告.html)、[线上实验方案](docs/online_experiment_plan.md) 和 [Tableau 工作簿草稿](tableau/RetailHero_营销决策_草稿.twbx)。Tableau 文件尚未在原生软件中完成验证。
 
 ## 运行与复现
+
+### 1 分钟体验（无需真实数据）
+
+仓库不包含原始数据。想快速看到整条流水线和核心结果，可用合成 demo 数据（自带已知 uplift 信号）跑通主分析：
+
+```bash
+.venv/bin/python -B run_project.py --demo
+```
+
+该命令先生成合成数据（[`scripts/make_demo_data.py`](scripts/make_demo_data.py)），再依次执行 01 → 02 → 03。合成数据与真实数据 schema 一致、规模更小（默认 20000 客户，约 20 秒跑完），产出 `reports/tables/test_policy_results.csv`。生成器**拒绝覆盖已存在的真实数据**；若已持有真实原始数据与划分清单，跳过 demo，直接走下面的完整流程。
 
 项目使用 Python，依赖列表见 [`requirements.txt`](requirements.txt)。主分析按照 `01 → 02 → 03` 顺序运行，`05` 提供独立的补充分析，`04` 用于展示与业务场景分析。
 
@@ -108,6 +132,21 @@ $$
 
 ```bash
 .venv/bin/python -B scripts/build_portfolio.py --audit-raw
+```
+
+在验证集上对比三个 meta-learner（T/S/X）并计算 Qini/AUUC（不触碰测试集）：
+
+```bash
+.venv/bin/python -B scripts/run_method_comparison.py
+```
+
+输出至 `reports/method_comparison/`。真实数据上会重新训练多个模型，需数分钟。
+
+启动交互看板（需额外安装 Streamlit）：
+
+```bash
+pip install streamlit
+streamlit run dashboard/app.py
 ```
 
 运行会更新模型、处理后的数据、报表及部分 notebook 输出，建议在执行前备份已有结果。详细依赖和运行方式见 [复现说明](docs/reproducibility.md)。

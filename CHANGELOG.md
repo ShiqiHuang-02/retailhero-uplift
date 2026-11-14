@@ -1,5 +1,13 @@
 # 版本记录
 
+## 2026-11-14 — 方法对比与求职演示
+
+- 新增手写 X-learner（`src/xlearner.py`）与 Qini/AUUC 指标（`src/uplift_metrics.py`），未引入外部因果推断库。
+- 新增 `scripts/run_method_comparison.py`：在验证集上对比 T/S/X-learner 的 Qini/AUUC 与 20% DR 策略价值，不触碰测试集。
+- 新增合成数据 demo 一键入口（`run_project.py --demo` 与 `scripts/make_demo_data.py`），供招聘方在无真实数据时复现主流程。
+- 新增 Streamlit 交互看板（`dashboard/app.py`）与一页业务简报（`docs/business_brief.md`）。
+- README 增补 TL;DR 与「1 分钟体验」说明。
+
 ## 2026-11-13 — 稳健性与本地真实数据验证
 
 - 为 01–03 加入关键审计阻断与共用评价模块，保持原模型参数和主要比较。
