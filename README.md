@@ -1,181 +1,114 @@
 # RetailHero Uplift Modeling：营销增量效果与触达策略评估
 
-本项目基于 X5 RetailHero 公开数据，使用 Uplift Modeling 分析营销沟通对客户购买行为的增量影响，并评估触达名额有限时的客户选择策略。
+基于 X5 RetailHero 公开数据，研究在**只能触达 20% 候选客户**时，如何通过客户选择增加购买人数。项目由因果推断课程作业扩展，涵盖交易特征构建、Uplift 建模、营销策略离线评价及不确定性分析。
 
-常规响应模型倾向于优先选择购买概率较高的客户，但高购买概率不一定意味着营销沟通能够带来额外购买。本项目通过估计客户在触达与未触达情形下的购买概率差异，对比 Uplift、响应预测、RFM 和随机触达策略的离线表现。
-
-项目以**触达 20% 候选客户**为主要业务情景。该比例是预设的容量约束，并非经优化得到的最优预算；项目采用的策略价值指标也不同于官方竞赛的排名指标。
-
-## TL;DR
-
-**一句话：** 用 uplift modeling（因果推断）在有限营销预算下选对触达人群——20% 触达比例下，Uplift 选人策略相比普通购买概率模型**每千人平均多带来 8.29 名购买客户**（近似 95% CI [3.55, 13.02]）。
-
-**技术栈：** DuckDB SQL 特征工程 · T-learner / S-learner · DR / IPW / Bootstrap 离线评价 · 倾向得分敏感性 · 可复现工程（22 个单元测试）。
-
-**1 分钟体验（无需 581 MB 真实数据）：**
-
-```bash
-.venv/bin/python -B run_project.py --demo
-```
-
-## 数据说明
-
-数据来自 [X5 RetailHero Uplift Modeling](https://ods.ai/competitions/x5-retailhero-uplift-modeling)。分析对象为 200,039 名有标签客户，其中触达组 99,981 人、对照组 100,058 人。每位客户对应一条建模记录。
-
-| 项目     | 说明                                                  |
-| -------- | ----------------------------------------------------- |
-| 处理变量 | `treatment_flg`：是否发生营销沟通                     |
-| 结果变量 | `target`：沟通后是否购买                              |
-| 客户特征 | 年龄、性别及历史交易行为等特征                        |
-| 数据划分 | 训练集 120,023 人；验证集 40,008 人；测试集 40,008 人 |
-| 研究对象 | 有标签样本均为近 30 天有交易记录的客户                |
-
-特征工程主要围绕客户历史消费记录展开，包括交易汇总、消费频次及金额等指标。处理前对客户 ID、交易金额、日期和标签进行一致性检查，并按交易 ID 汇总商品明细，避免重复计算交易金额。异常年龄按缺失值处理并增加标记；无法确认在特征截止点之前可获取的首次兑换日期未纳入模型。
-
-特征统计截止点设为 `2019-03-19 00:00:00`。该时间由项目分析流程设定，不应视为已核实的营销触达时间。数据字段及假设说明见 [研究设计文档](docs/research_design.md) 和 [官方数据说明](https://ods.ai/competitions/x5-retailhero-uplift-modeling/data)。
-
-## 分析方法
-
-### 1. 增量响应建模
-
-使用 `HistGradientBoostingClassifier` 构建 T-learner，分别拟合触达组和对照组的购买概率：
-
-$$
-\hat\tau(x) = \hat P(Y=1\mid X=x,T=1)-\hat P(Y=1\mid X=x,T=0)
-$$
-
-以 `\hat\tau(x)` 作为客户的预测 Uplift 分数，用于排序和名额分配。同时训练常规购买响应模型，并引入 S-learner 与 X-learner 作为补充比较（三者均以 `HistGradientBoosting` 为基学习器、手写实现，未引入外部因果推断库）。三个 meta-learner 在验证集上用 **Qini 曲线 / AUUC** 与 20% DR 策略价值做模型对比，见 [`scripts/run_method_comparison.py`](scripts/run_method_comparison.py)。建模与验证集诊断见 [`02_modeling.ipynb`](02_modeling.ipynb) 和 [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb)。
-
-### 2. 策略比较与离线评价
-
-在相同的 20% 触达比例下，对比以下五种策略：
-
-- **Random**：随机选择客户。
-- **RFM**：根据最近购买、购买频次及消费金额排序。
-- **Response**：根据全训练样本模型预测的购买概率排序。
-- **Response_p1**：根据触达组模型预测的购买概率排序。
-- **Uplift**：根据预测的触达增量效果排序。
-
-以**相对完全不触达时，每千名候选客户的预计新增购买人数**衡量策略价值。主要采用双重稳健（Doubly Robust，DR）估计，并使用逆概率加权（Inverse Probability Weighting，IPW）进行补充分析。对于策略之间的差异，采用客户层面的配对估计。
-
-### 3. 预算优化（触达比例的净收益寻优）
-
-在验证集预算曲线上，给定假设毛利 `margin` 与触达成本 `cost`，寻找使净收益 `gain_per_1000 × margin − contacts_per_1000 × cost` 最大的触达比例：
-
-```bash
-.venv/bin/python -B scripts/run_budget_optimization.py --margin 10 --cost 0.5
-```
-
-结论随成本/毛利变化：低成本时最优趋近 100%；成本较高时仅 Uplift 策略在小比例触达下仍保持正净收益（其增量集中在排序顶部），其余策略净收益归零。该最优在**验证集**上选出，存在选后偏差，需测试集或线上实验确认。20% 仍是本项目的主要业务情景，而非经优化得到的预算。
+购买概率高，不一定意味着营销能带来额外购买。本项目对比按预测增量、购买概率、RFM 和随机分配名额的策略。20% 是预设容量约束，不是已确认的最优预算。
 
 ## 主要结果
 
-全样本中，触达组购买率为 **63.65%**，对照组为 **60.33%**，观察到的差异为 **3.32 个百分点**（近似 95% 置信区间：[2.90, 3.75] 个百分点）。这一数值首先反映组间购买率差异，其因果解释取决于处理分配机制等识别条件。
+下表为**历史固定划分的内部测试集、20% 触达比例、DR 估计**。指标表示相对完全不触达时，每千名候选客户的预计新增购买人数；分母包含未被选中的客户。
 
-以下为内部测试集上的离线 DR 估计结果。各策略均选择约 20% 的客户，即每千名候选客户触达约 200 人。
+<!-- RESULTS:START -->
+| 策略 | 预计新增购买人数／千名候选客户 | 近似 95% CI |
+|---|---:|---:|
+| Random | 5.20 | [3.52, 6.89] |
+| RFM | 1.55 | [-1.00, 4.10] |
+| Response | 2.57 | [0.27, 4.88] |
+| Response_p1 | 3.04 | [0.73, 5.35] |
+| Uplift | 10.86 | [6.70, 15.02] |
 
-| 策略        | 预计新增购买人数／千名候选客户 |       近似 95% CI |
-| ----------- | -----------------------------: | ----------------: |
-| Random      |                           5.20 |      [3.52, 6.89] |
-| RFM         |                           1.55 |     [-1.00, 4.10] |
-| Response    |                           2.57 |      [0.27, 4.88] |
-| Response_p1 |                           3.04 |      [0.73, 5.35] |
-| **Uplift**  |                      **10.86** | **[6.70, 15.02]** |
+Uplift 相对 Response 的离线估计差异为 **8.29 人／千名候选客户**，配对差异的近似 95% CI 为 **[3.55, 13.02]**。
+<!-- RESULTS:END -->
 
-在该评价设定下，Uplift 相比 Response **每千名候选客户多带来约 8.29 名预计新增购买客户**，配对差异的近似 95% 置信区间为 **[3.55, 13.02]**。相比 Response_p1 的差异为 7.82 人／千人（近似 95% CI：[3.09, 12.55]）。
+![测试集策略价值与配对差异区间](reports/portfolio/figures/01_policy_uncertainty.png)
 
-这些结果属于**历史数据上的离线估计**，不是线上实验中实际观察到的增量收益。测试集是有标签数据的内部划分，而非竞赛官方无标签测试集；其结果此前已被查看，因此不能将后续分析视为新的独立测试确认。
+数据出处：[策略结果表](reports/tables/test_policy_results.csv)、[配对差异表](reports/tables/test_policy_comparisons.csv)。图右侧另展示固定模型、固定选人结果的配对 Bootstrap 区间，与验证集上重新选人的 Bootstrap 分析不同。
 
-### 补充诊断与稳健性分析
+这些是**离线估计，不能表述为实际新增客户或已实现利润**。测试集此前已被查看；本轮整理不构成新的独立测试验证。新划分和合成演示会产生不同结果。
 
-验证集上的分析进一步检查了处理概率设定、模型选择与样本划分对策略评价的影响：
+## 方法与数据
 
-- 将处理概率设为固定 0.5、训练集实际处理比例或基于特征的逻辑回归估计时，Uplift 与 Response 的 DR 差异为 **7.96–8.01 人／千人**。
-- 在五次开发集划分中，Uplift 与 Response 的 DR 差异估计均为正，范围为 **5.54–13.36 人／千人**。这些结果并非五份相互独立的测试证据。
-- 验证集进行 500 次客户 Bootstrap 并重新选择前 20% 客户，主比较的近似 95% 区间为 **[2.98, 12.30] 人／千人**。
+原始数据来自 [X5 RetailHero Uplift Modeling](https://ods.ai/competitions/x5-retailhero-uplift-modeling)，包含客户资料、历史交易及营销沟通标签。历史分析使用 200,039 名有标签客户，训练／验证／内部测试样本量分别为 120,023／40,008／40,008。
 
-此外，预测 Uplift 的数值校准仍有偏差；S-learner 在部分评价口径下的点估计表现优于 T-learner。因而，当前结果支持继续研究按增量效果分配名额的策略，但不足以认定 T-learner 为最优模型。详细结果见 [稳健性分析摘要](reports/audit/summary.md)。
+1. **特征构建**：使用 DuckDB SQL 将商品明细汇总到交易，再汇总到客户；检查交易信息冲突，避免金额重复累计。处理异常年龄，剔除无法确认在特征截止点之前可用的日期字段。
+2. **建模与排序**：以 HistGradientBoosting 为基学习器训练 T-learner；对照策略包括 RFM、全训练样本响应模型 Response、触达组响应模型 Response_p1。S/X-learner 和 Qini/AUUC 提供补充诊断。
+3. **策略评价**：使用 DR 与 IPW 估计相对不触达的增量价值，并按同一批客户计算策略差异。Random 采用固定名额随机选人的期望权重，不是一次随机抽样的偶然结果。
+4. **稳健性分析**：检查处理概率设定、客户 Bootstrap、开发集重复划分和不同模型；在假设成本与毛利下进行验证集预算情景分析。
+
+训练集用于模型拟合与 RFM 阈值确定，验证集用于诊断与方案比较；内部测试集用于报告既有固定策略。详情见[研究设计](docs/research_design.md)、[稳健性摘要](reports/audit/summary.md)和[业务简报](docs/business_brief.md)。
+
+## 快速开始
+
+### 安装依赖
+
+在项目根目录执行。已验证的本地解释器为 Python 3.14.7；依赖安装与跨平台验证状态见[验证记录](docs/public_repository_validation.md)。
+
+```bash
+python3.14 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+`requirements.txt` 列出主分析直接依赖；`requirements-lock.txt` 保留历史本地环境的完整版本快照。Windows 激活命令为 `.venv\Scripts\activate`。
+
+### 无原始数据：合成演示
+
+```bash
+python run_project.py --demo
+```
+
+默认生成 20,000 名合成客户，在 `work/demo/` 独立执行 01 → 02 → 03。结果位于 `work/demo/reports/tables/`，不会覆盖正式数据、报表或 Notebook 输出。合成数据包含人为设定的异质性效果，只用于说明流程，不作为真实业务效果证据；运行时间依机器与环境而定。
+
+再次运行时请指定新目录，例如 `python run_project.py --demo --output work/demo-2`；程序拒绝覆盖已有实验。
+
+### 有原始数据：新划分完整运行
+
+从[数据来源页面](https://ods.ai/competitions/x5-retailhero-uplift-modeling/data)自行获取数据，将 `clients.csv.gz`、`uplift_train.csv.gz`、`purchases.csv.gz` 放到 `data/raw/`，然后运行：
+
+```bash
+python run_project.py --new-split
+```
+
+命令将原始文件复制到 `work/new-split/`，按客户 ID 排序后，以固定种子 42 在“处理 × 结果”层内生成约 60%／20%／20% 划分，再执行 01 → 02 → 03。记录输入哈希、划分算法、种子、样本量及软件版本。其他数据位置可通过 `--raw-dir` 指定。
+
+**新划分用于复现分析方法，不保证复现上表数字。** 精确恢复历史实验仍需原 `assignments.csv`；仓库保留其哈希元数据，但不公开客户名单。已有该清单的用户可运行 `python run_project.py`，原地执行 01 → 02 → 03 → 05 并更新结果。完整用法见[复现说明](docs/reproducibility.md)。
+
+### 检查与展示
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/summarize_results.py --check
+```
+
+已有汇总结果可直接阅读[HTML 分析报告](reports/portfolio/项目展示报告.html)（下载后在浏览器打开）。可选交互看板：
+
+```bash
+python -m pip install streamlit
+python -m streamlit run dashboard/app.py
+```
 
 ## 项目结构
 
-| 文件                                                         | 主要内容                                          |
-| ------------------------------------------------------------ | ------------------------------------------------- |
-| [`01_data_exploration.ipynb`](01_data_exploration.ipynb)     | 数据审计、客户特征构建、组间差异分析              |
-| [`02_modeling.ipynb`](02_modeling.ipynb)                     | 响应模型、T-learner 训练与验证集诊断              |
-| [`03_policy_evaluation.ipynb`](03_policy_evaluation.ipynb)   | 触达策略比较、DR/IPW 评价及预算分析               |
-| [`04_portfolio_analysis.ipynb`](04_portfolio_analysis.ipynb) | 客户画像、名单重合度、成本情景及展示分析          |
-| [`05_robustness_and_business.ipynb`](05_robustness_and_business.ipynb) | 处理概率敏感性、S-learner、Bootstrap 与划分稳定性 |
-| [`scripts/run_method_comparison.py`](scripts/run_method_comparison.py) | T/S/X-learner 对比、Qini/AUUC 与策略价值      |
-| [`scripts/run_budget_optimization.py`](scripts/run_budget_optimization.py) | 触达比例的净收益寻优                          |
-| [`dashboard/app.py`](dashboard/app.py)                         | Streamlit 交互看板（策略对比、预算曲线、净收益） |
-| [`docs/`](docs/)                                             | 研究设计、数据说明、复现方法和分析记录            |
-| [`reports/`](reports/)                                       | 结果表格、图表及离线展示材料                      |
+| 入口 | 内容 |
+|---|---|
+| [01_data_exploration.ipynb](01_data_exploration.ipynb) | 数据审计、交易聚合、客户特征与固定划分恢复 |
+| [02_modeling.ipynb](02_modeling.ipynb) | 响应模型、T-learner 与验证集诊断 |
+| [03_policy_evaluation.ipynb](03_policy_evaluation.ipynb) | DR/IPW 策略评价、配对差异与预算曲线 |
+| [04_portfolio_analysis.ipynb](04_portfolio_analysis.ipynb) | 画像、名单重合、成本情景与展示分析 |
+| [05_robustness_and_business.ipynb](05_robustness_and_business.ipynb) | 处理概率、S-learner、Bootstrap 与划分稳定性 |
+| [src/](src/) / [scripts/](scripts/) | 共用统计方法、划分校验、运行与报告生成 |
+| [reports/](reports/) / [docs/](docs/) | 汇总表、图表、研究设计、复现及验证记录 |
 
-补充材料包括 [业务简报](docs/business_brief.md)、[交互看板](dashboard/app.py)、[HTML 分析报告](reports/portfolio/项目展示报告.html)、[线上实验方案](docs/online_experiment_plan.md) 和 [Tableau 工作簿草稿](tableau/RetailHero_营销决策_草稿.twbx)。Tableau 文件尚未在原生软件中完成验证。
+可选分析包括[模型比较](scripts/run_method_comparison.py)、[预算情景](scripts/run_budget_optimization.py)和[线上实验方案](docs/online_experiment_plan.md)，运行命令见复现说明。Tableau 仅保留为[未完成原生验证的草稿](tableau/使用说明.md)，不作为已完成的展示成果。
 
-## 运行与复现
+## 解释边界
 
-### 1 分钟体验（无需真实数据）
+- **因果识别**：真实随机分配机制、营销触达定义和结果观察窗口尚未核实；`e=0.5` 是分析假设。特征截止点 `2019-03-19 00:00:00` 由项目设定，不代表已确认的触达时间。
+- **统计不确定性**：主要区间条件于已训练模型，未完整包含模型重训、策略选择和多重比较的不确定性。部分 IPW 结果支持较弱，S-learner 在部分口径下优于 T-learner，不能据此认定 T-learner 最优。
+- **业务外推**：样本主要覆盖近期活跃客户，缺少真实触达成本、贡献毛利和线上实验。预算寻优属于验证集探索，其最大值不能直接视为未来收益。
 
-仓库不包含原始数据。想快速看到整条流水线和核心结果，可用合成 demo 数据（自带已知 uplift 信号）跑通主分析：
+## 来源与项目说明
 
-```bash
-.venv/bin/python -B run_project.py --demo
-```
+数据与字段来源见[研究设计的来源清单](docs/research_design.md#来源)。本仓库整理了客户特征工程、meta-learner 建模、策略离线评价、稳健性检查与展示流程；项目指标不同于官方竞赛排名指标。
 
-该命令先生成合成数据（[`scripts/make_demo_data.py`](scripts/make_demo_data.py)），再依次执行 01 → 02 → 03。合成数据与真实数据 schema 一致、规模更小（默认 20000 客户，约 20 秒跑完），产出 `reports/tables/test_policy_results.csv`。生成器**拒绝覆盖已存在的真实数据**；若已持有真实原始数据与划分清单，跳过 demo，直接走下面的完整流程。
-
-项目使用 Python，依赖列表见 [`requirements.txt`](requirements.txt)。主分析按照 `01 → 02 → 03` 顺序运行，`05` 提供独立的补充分析，`04` 用于展示与业务场景分析。
-
-在**已配置依赖、原始数据与固定样本划分文件**的本地环境中，可从项目根目录执行：
-
-```bash
-.venv/bin/python -B run_project.py
-```
-
-仅运行补充分析：
-
-```bash
-.venv/bin/python -B run_project.py --steps 5
-```
-
-生成展示材料及补充 SQL 审计结果：
-
-```bash
-.venv/bin/python -B scripts/build_portfolio.py --audit-raw
-```
-
-在验证集上对比三个 meta-learner（T/S/X）并计算 Qini/AUUC（不触碰测试集）：
-
-```bash
-.venv/bin/python -B scripts/run_method_comparison.py
-```
-
-输出至 `reports/method_comparison/`。真实数据上会重新训练多个模型，需数分钟。
-
-在验证集预算曲线上做触达比例的净收益寻优（需先运行 `build_portfolio.py`）：
-
-```bash
-.venv/bin/python -B scripts/run_budget_optimization.py --margin 10 --cost 0.5
-```
-
-启动交互看板（需额外安装 Streamlit）：
-
-```bash
-pip install streamlit
-streamlit run dashboard/app.py
-```
-
-运行会更新模型、处理后的数据、报表及部分 notebook 输出，建议在执行前备份已有结果。详细依赖和运行方式见 [复现说明](docs/reproducibility.md)。
-
-**数据可用性：**仓库不包含原始数据、处理后的客户级数据、训练模型、虚拟环境及固定客户划分清单 `data/splits/assignments.csv`。完整复现需自行获取原始数据，并恢复与原分析一致的客户划分；仅有 `metadata.json` 无法还原客户名单。当前验证针对已有本地环境，未验证全新计算机上的依赖安装。
-
-## 局限性
-
-本项目的主要结论建立在特定数据范围和离线评价设定之上，解释时需注意：
-
-1. **识别假设**：目前尚未核实真实随机分配机制、营销触达的具体定义及结果观察窗口。主评价使用 `e=0.5` 的处理概率设定，观测到的组间特征平衡不足以单独证明该假设成立。
-2. **估计不确定性**：主要置信区间基于独立客户、大样本近似及已训练模型，未完整包含模型重训、策略选择和多重比较带来的不确定性。部分 IPW 结果也未提供同等强度的支持。
-3. **业务外推**：样本主要覆盖近期活跃客户；由于缺少实际触达成本、贡献毛利及线上 A/B 实验数据，目前无法直接评估真实利润增量或线上投放收益。
-
-项目由因果推断课程作业扩展而来，重点在于完成从数据处理、异质性效果建模到营销策略离线评价的分析流程。版本变更与验证记录见 [`CHANGELOG.md`](CHANGELOG.md)，更详细的方法假设见 [`docs/research_design.md`](docs/research_design.md)。
+原始数据、客户级中间结果、训练模型和本地运行目录不随代码发布。数据获取与使用应遵循原提供方条款；代码公开不代表附带原始数据再分发授权。版本记录见 [CHANGELOG.md](CHANGELOG.md)。

@@ -24,7 +24,7 @@ def main():
     baseline = args.baseline.resolve()
     if baseline == ROOT:
         raise ValueError('Baseline must be a separate backup')
-    result = {'baseline': str(baseline), 'checks': [], 'table_max_abs_differences': {}}
+    result = {'baseline': baseline.name, 'checks': [], 'table_max_abs_differences': {}}
     for name in ['train', 'validation', 'test', 'validation_scores']:
         relative = f'data/processed/{name}.parquet'
         old = duckdb.read_parquet(str(baseline / relative)).df()

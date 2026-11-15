@@ -26,5 +26,6 @@
     "03_policy_evaluation.ipynb": 14,
     "05_robustness_and_business.ipynb": 8
   },
-  "status": "passed"
+  "status": "passed",
+  "baseline_path_note": "Local backup directory name only; absolute machine path omitted for public distribution."
 }

@@ -20,7 +20,7 @@ def main():
         raise ValueError('Baseline must be a separate directory')
     if Path(args.report).name != args.report:
         raise ValueError('Report must be a file name')
-    result = {'baseline': str(baseline), 'strict': args.strict, 'checks': [], 'table_max_abs_differences': {}}
+    result = {'baseline': baseline.name, 'strict': args.strict, 'checks': [], 'table_max_abs_differences': {}}
     for name in ['train', 'validation', 'test']:
         old = duckdb.read_parquet(str(baseline / f'data/processed/{name}.parquet')).df()
         new = duckdb.read_parquet(str(root / f'data/processed/{name}.parquet')).df()

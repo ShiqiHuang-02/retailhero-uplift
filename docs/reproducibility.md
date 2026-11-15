@@ -1,102 +1,135 @@
-# 运行与划分恢复说明
+# 运行与复现
 
-## 必需输入
+项目提供三条运行路径。所有结果均为离线分析，重复运行不产生新的独立因果证据。
 
-项目根目录须保留以下文件：
+| 路径 | 所需输入 | 默认输出 | 能否复现 README 历史数字 |
+|---|---|---|---|
+| 合成演示 `--demo` | 安装依赖 | `work/demo/` | 不能，仅验证流程 |
+| 真实数据新划分 `--new-split` | 三份原始 CSV | `work/new-split/` | 不保证；生成新实验 |
+| 历史固定划分，无模式参数 | 原始 CSV、原划分 CSV 及元数据 | 当前项目，更新既有输出 | 同环境下可核对；不承诺跨平台逐位一致 |
+
+## 环境与依赖
+
+已验证的本地解释器为 Python 3.14.7。`requirements.txt` 固定主分析的直接依赖；完整历史环境（含可选 Jupyter 组件）另存于 `requirements-lock.txt`。不要直接复制 `.venv` 到其他机器。
+
+```bash
+python3.14 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+2026-11-15 尝试在新虚拟环境安装时，当前软件源未提供 `duckdb==1.5.6` 可安装版本，安装未完成。因此目前验证范围是**已有依赖环境中的完整运行**，不宣称新电脑或跨操作系统安装通过。详见[本轮验证记录](public_repository_validation.md)。
+
+默认使用独立 IPython 子进程执行每份 Notebook，无需 Jupyter 端口；也可加 `--engine kernel` 使用独立内核。两种方式都使用启动脚本的同一 Python。脚本默认限制部分数值计算线程数为 4；环境变量可覆盖此设定。
+
+## 合成演示
+
+```bash
+python run_project.py --demo
+```
+
+生成 20,000 名合成客户，执行 01 → 02 → 03。代码与 Notebook 复制到独立目录；不带入历史模型、处理后数据或报告。合成数据的潜在活跃度影响历史交易与购买倾向，处理以 0.5 概率随机分配，处理效果随活跃度变化。设定见 `scripts/make_demo_data.py`，不把人为设定的优势当作真实数据结论。
+
+可指定规模、种子与新目录：
+
+```bash
+python run_project.py --demo --n-clients 20000 --seed 42 --output work/demo-2
+```
+
+目录已存在时拒绝覆盖。演示数据与真实数据共享字段结构，但不承诺共享日期分布、业务样本范围或效果幅度。
+
+## 从真实原始数据开始
+
+从 [ODS 数据页面](https://ods.ai/competitions/x5-retailhero-uplift-modeling/data)自行获取以下文件，遵循提供方的数据使用条款。项目不会自动下载或公开再分发原始数据。
 
 ```text
 data/raw/clients.csv.gz
 data/raw/uplift_train.csv.gz
 data/raw/purchases.csv.gz
-data/splits/assignments.csv
-data/splits/metadata.json
 ```
-
-原始数据在当前本地项目中已具备。迁移到另一台电脑时，需要自行准备上述输入，并保留五个 notebook、`src/`、`scripts/` 和 `requirements.txt`。不要将本机 `.venv` 直接复制为另一台机器的环境。
-
-`assignments.csv` 保存原有 200,039 名客户的集合归属、内部顺序和两项标签，不包含重新计算的行为特征。`metadata.json` 保存人数与 SHA-256 校验值。清单来自既有 processed 文件的一次性导出，没有重新抽样，也没有声称重建最初划分算法。
-
-**从原始数据复现仍需要固定划分清单。**变化在于，不再需要旧特征、旧模型或旧报告。清单应与项目一起备份；如果丢失，请恢复原清单，不能用新的随机划分冒充同一实验。
-
-## 使用已有环境
-
-在项目根目录运行：
 
 ```bash
-.venv/bin/python -B -m unittest discover -s tests -v
-.venv/bin/python -B scripts/run_pipeline.py
+python run_project.py --new-split
 ```
 
-第一条运行划分恢复、DR/IPW、bootstrap 和模拟数据集成测试。第二条依次执行 01 → 02 → 03 → 05，每份 notebook 使用独立内核，且采用启动脚本的同一 Python 环境。`run_project.py` 是同一入口的简写。04 展示内容仍由 `scripts/build_portfolio.py` 生成。
-
-只运行新增分析：
+可指定其他数据目录和独立输出位置：
 
 ```bash
-.venv/bin/python -B run_project.py --steps 5
+python run_project.py --new-split --raw-dir /path/to/raw --output work/experiment-2 --seed 42
 ```
 
-无需 Jupyter 端口的运行方式（本轮使用）：
+程序复制三份原始文件（需要额外磁盘空间），然后生成清单并运行 01 → 02 → 03。开始时目录中没有 processed、模型和报告。若需要补充稳健性分析，可加 `--steps 1 2 3 5`。
+
+划分算法 `sorted_client_id_stratified_treatment_target_python_random_v1`：
+
+1. 以字符串读取客户 ID，拒绝空值、重复客户与非二元标签。
+2. 先按客户 ID 稳定排序，再按“处理 × 结果”分层；使用 Python `random.Random(seed)` 打乱每层索引。
+3. 每层训练人数取 `round(0.6*n)`、验证人数取 `round(0.2*n)`，余下为测试；每层至少需要 5 名客户。由于分层取整，总人数不必与历史划分相同。
+4. 各集合内部按客户 ID 排序，保存连续行号与标签，执行覆盖与不交叉校验。
+
+清单元数据包含算法名、种子、人数、各层分布、标签输入哈希与清单哈希。`run_metadata.json` 另记录原始文件哈希、执行前代码哈希、软件版本、执行步骤和状态。输入顺序改变不会改变划分；数据、种子或算法改变则属于不同实验。
+
+只生成清单（不运行模型）时使用：
 
 ```bash
-.venv/bin/python -B run_project.py --engine inprocess
+python scripts/create_split_manifest.py --labels data/raw/uplift_train.csv.gz --output work/split-only --seed 42
 ```
 
-该模式使用独立 IPython 子进程执行每份 notebook，保存表格、图像与错误输出，任一单元失败立即停止。只重跑主分析可用 `--steps 1 2 3`。
+**新清单不是历史名单的恢复。** README 的 10.86、8.29 等来自保留的历史实验；新实验请读取自己的 `reports/tables/`，不要引用历史报告作为本次输出。
 
-完整运行会重建 `data/processed/`、`models/` 和 `reports/` 下的当前输出，并更新 01、02、03、05 的运行结果。已有重要结果请先备份，或在独立项目副本中运行。2026-10-25 的首次复现是在没有 processed、模型或报告文件的独立目录中开始的；2026-11-13 本轮在本地备份后重建，详见 `robustness_revision.md`。
+## 恢复历史固定划分
 
-如果选择手动使用 Jupyter，打开项目根目录，确认内核属于该项目 `.venv`，按 01 → 02 → 03 → 05 从头执行。
-
-## 新环境准备
-
-本机现有环境为 Python 3.14.7；`requirements.txt` 固定了已记录的依赖版本。另一环境可按如下方式建立：
+除原始数据外，还需要原 `data/splits/assignments.csv` 及其匹配的 `metadata.json`。公开仓库只包含元数据，哈希不能反推出客户名单。
 
 ```bash
-python3.14 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -B scripts/run_pipeline.py
+python run_project.py
 ```
 
-本次验证使用本机已有环境，没有重新安装全部依赖，也没有验证跨操作系统的可安装性或数值一致性。脚本默认将部分数值计算线程数限制为 4，减少线程争抢；这不改变模型超参数。
+该路径原地执行 01 → 02 → 03 → 05，会重建处理后数据、模型、报告和 Notebook 输出。需保留历史结果时，请在独立副本中运行。只跑主分析可用 `--steps 1 2 3`；只跑补充分析可用 `--steps 5`，但相应模型与中间数据须已存在。
 
-## 固定名单的恢复与迁移
+`restore_splits` 校验文件哈希、客户唯一性、跨集交叉、连续行序号、客户覆盖与标签一致性；缺失或不匹配时立即报错，不自动抽样。原清单来自已有 processed 文件的一次性导出，未重建最初随机划分算法。
 
-01 调用 `src/splits.py` 中的 `restore_splits`。读取清单后检查：文件哈希、客户唯一性、跨集交叉、连续行序号、与当前客户集合相符、处理与结果标签一致。校验失败立即报错，绝不自动生成新划分。
-
-`scripts/export_split_manifest.py` 是首次迁移工具，当前项目的清单已经生成，正常运行不需要再执行。只有在从另一个已有完整项目迁移时，才使用：
+如从另一个完整项目迁移名单，可以导出到尚不存在的目录：
 
 ```bash
-.venv/bin/python -B scripts/export_split_manifest.py \
-  --source data/processed \
-  --labels data/raw/uplift_train.csv.gz \
-  --output data/splits
+python scripts/export_split_manifest.py --source data/processed --labels data/raw/uplift_train.csv.gz --output work/exported-historical-split
 ```
 
-输出目录已经存在时工具拒绝覆盖。哈希用于发现意外改动，不是防止恶意篡改的数字签名；比较基准应保留在独立备份中。
+## 补充分析与展示
 
-## 本次修改前后的核对
+以下命令从**目标实验的根目录**运行。若分析新实验，请先 `cd work/new-split`，并使用已经激活的项目 Python 环境。
 
 ```bash
-.venv/bin/python -B scripts/verify_robustness_revision.py \
-  --baseline work/backups/before_robustness_20261113
+python run_project.py --steps 5
+python scripts/run_method_comparison.py
+python scripts/build_portfolio.py --audit-raw
+python scripts/run_budget_optimization.py --margin 10 --cost 0.5
 ```
 
-核对原客户划分、特征、预测、九张结果表、主模型参数、04 原文件，以及新增分析的输入／代码／输出哈希和执行状态。报告位于 `reports/robustness_revision_check.json`。
+模型比较只在验证集上比较 T/S/X-learner。展示脚本生成客户画像、配对 Bootstrap、预算曲线、HTML 和 Tableau 草稿；预算情景依赖此前生成的展示表。HTML 主要数字从汇总表读取；Tableau 仍需原生验证。
 
-## 如何核对同版本独立重跑
+可选看板：`python -m pip install streamlit`，然后 `python -m streamlit run dashboard/app.py`。看板读取其所在实验目录的结果，不自动切换到另一个实验。
 
-在完成运行的项目副本中执行：
+## 数字同步与发布
+
+主结果由 03 自动输出到 `reports/tables/`，主要图表由 03 与 `build_portfolio.py` 生成。历史仓库的 README 结果块可由同一组 CSV 自动更新与检查：
 
 ```bash
-.venv/bin/python -B scripts/verify_reproduction.py --baseline /绝对路径/原项目备份
+python scripts/summarize_results.py --check
+python scripts/summarize_results.py --write
 ```
 
-如副本中没有 `.venv`，使用原环境 Python 的绝对路径。验证脚本比较数据集客户顺序、标签、特征、验证预测及全部既有结果表，同时检查 55 个代码单元格均成功执行。数值比较规则如下；比较报告保存为 `reports/reproduction_check.json`。默认模式严格核对名单、标签及特征，完整报告预测和结果表的差异，不将重训后不同的数字强行判为相等。添加 `--strict` 时，预测和结果表也必须在严格浮点容差内一致；可用 `--report 文件名.json` 保留多次比较。基准不能指向副本自身。
+更新前确认这是要公开的那一次实验，再同步业务简报、HTML、图表和验证记录。该检查只核对 README 标记区间与两张主表，不等同于全仓库数字校验。
 
-完整重跑验证的是既有分析可复现，不增加新的独立样本，也不解决随机分配机制、真实处理时间和观察窗口仍待核实的问题。
+公开 Notebook 保留汇总统计与图表，移除客户明细样例和本机路径。重新执行可能产生机器路径或长警告，提交前需检查输出差异。原始数据、处理后数据、固定客户名单、模型和 `work/` 均由 `.gitignore` 排除。
 
-## 数值稳定性处理
+## 验证与数值稳定性
 
-01 的客户金额汇总原来使用无指定顺序的浮点求和。并行执行的累加顺序会造成末位差异，树模型及排名边界可能放大这种差异。当前将历史金额、平均交易金额及近 30 天金额的聚合顺序固定为每位客户的 transaction_id，保留原金额精度，不做额外舍入。客户范围、交易范围、模型超参数和评价公式保持原样。
+```bash
+python -m unittest discover -s tests -v
+python scripts/verify_reproduction.py --baseline /path/to/historical-backup
+```
 
-与旧版本的细微数值差异见 `reports/reproduction_check.json`；相同新版流程重复运行的严格核对见 `reports/repeatability_check.json`。这是本机同一环境的重复运行验证，不承诺跨版本、跨硬件逐位一致。
+第二条用于具有匹配历史名单的独立重跑核对，**不要用来要求新划分匹配历史结果**。`--strict` 进一步要求预测和结果表符合严格浮点容差；基准不能指向当前项目自身。
+
+金额特征按每位客户的交易 ID 固定求和顺序，减少并行浮点累加差异。客户、标签、特征、模型超参数与评价公式均可单独核对。历史验证见 [reproducibility_validation.md](reproducibility_validation.md)、[repeatability_check.json](../reports/repeatability_check.json)；这些是当时版本与环境的记录，不覆盖后续所有改动。

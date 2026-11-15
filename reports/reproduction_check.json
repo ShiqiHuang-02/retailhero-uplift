@@ -36,5 +36,6 @@
   "test_top20_replaced_customers": {
     "p1": 1,
     "uplift": 0
-  }
+  },
+  "baseline_path_note": "Local backup directory name only; absolute machine path omitted for public distribution."
 }

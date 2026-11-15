@@ -61,14 +61,14 @@ if comparisons is not None:
         row = primary.iloc[0]
         st.header("核心结论（20% 触达，离线 DR 估计）")
         c1, c2, c3 = st.columns(3)
-        c1.metric("Uplift − Response 增量", f"{row['extra_gain_per_1000']:.2f} 人/千人")
+        c1.metric("Uplift − Response 增量", f"{row['extra_gain_per_1000']:.2f} 人/千名候选客户")
         c2.metric("近似 95% CI 下界", f"{row['ci_low']:.2f}")
         c3.metric("近似 95% CI 上界", f"{row['ci_high']:.2f}")
         st.caption("⚠️ 历史数据上的离线估计，不是线上实验实际收益；因果解释依赖识别假设（见 README「局限性」）。")
 
 # ---- 2. 策略对比 ----
 if policy_results is not None:
-    st.header("各策略增量价值（每千人候选客户）")
+    st.header("各策略增量价值（每千名候选客户）")
     st.pyplot(gain_bar(policy_results.copy(), "gain_per_1000", "#4C78A8"))
     st.dataframe(policy_results.round(2))
 

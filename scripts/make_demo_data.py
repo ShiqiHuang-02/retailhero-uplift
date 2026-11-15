@@ -4,7 +4,7 @@ The real X5 RetailHero dataset (~581 MB of gzipped CSVs) is intentionally kept
 out of the repository, together with the processed data, trained models and the
 fixed customer split. This script writes synthetic raw files with the SAME
 schema as the real data plus a matching split manifest, so a reviewer can run
-the core pipeline (01 -> 02 -> 03) end-to-end in well under a minute.
+the core pipeline (01 -> 02 -> 03) end-to-end; runtime depends on the machine.
 
 Data generating process (DGP) — kept explicit so the demo result is explainable:
 
